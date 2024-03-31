@@ -128,21 +128,22 @@ let wavePlot = function (id) {
         mouse.y = e.pageY * dpi;
     }
 
-    ontouchstart = (e) => {
+    window.ontouchstart = (e) => {
         mouseDown = true;
 
         storeTouchPosition(e);
     }
 
-    ontouchend = () => {
+    window.ontouchend = () => {
         mouseDown = false;
     }
 
-    ontouchmove = (e) => {
+    window.ontouchmove = (e) => {
         storeTouchPosition(e);
     }
 
     const storeTouchPosition = (e) => {
+        e.preventDefault();
         let touches = e.changedTouches;
 
         mouse.x = touches[0].pageX * dpi;

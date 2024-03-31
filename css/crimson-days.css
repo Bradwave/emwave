@@ -1,19 +1,22 @@
+/* -- General -- */
+
 * {
     cursor: crosshair;
     margin: 0;
     padding: 0;
+    touch-action: none;
 }
 
 body, html {
-    height:100%;
+    height: 100%;
 }
 
 /* -- Canvases -- */
 
 #canvas-wave {
-    position:absolute;
-    width:100%;
-    height:100%;
+    position: absolute;
+    width: 100%;
+    height: 100%;
 }
 
 /* -- Loaders -- */
