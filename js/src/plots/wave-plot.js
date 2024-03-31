@@ -109,21 +109,21 @@ let wavePlot = function (id) {
     }
 
     // On mouse down
-    window.onmousedown = (e) => {
+    window.ontouchstart = (e) => {
         if (e.button == 0) {
             mouseDown = true;
         }
     }
 
     // On mouse up
-    window.onmouseup = (e) => {
+    window.ontouchend = (e) => {
         if (e.button == 0) {
             mouseDown = false;
         }
     }
 
     // On mouse move
-    window.onmousemove = (e) => {
+    window.ontouchmove = (e) => {
         mouse.x = e.pageX * dpi;
         mouse.y = e.pageY * dpi;
     }
