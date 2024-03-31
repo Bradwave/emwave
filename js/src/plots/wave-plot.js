@@ -109,23 +109,44 @@ let wavePlot = function (id) {
     }
 
     // On mouse down
-    window.ontouchstart = (e) => {
+    window.onmousedown = (e) => {
         if (e.button == 0) {
             mouseDown = true;
         }
     }
 
     // On mouse up
-    window.ontouchend = (e) => {
+    window.onmouseup = (e) => {
         if (e.button == 0) {
             mouseDown = false;
         }
     }
 
     // On mouse move
-    window.ontouchmove = (e) => {
+    window.onmousemove = (e) => {
         mouse.x = e.pageX * dpi;
         mouse.y = e.pageY * dpi;
+    }
+
+    ontouchstart = (e) => {
+        mouseDown = true;
+
+        storeTouchPosition(e);
+    }
+
+    ontouchend = () => {
+        mouseDown = false;
+    }
+
+    ontouchmove = (e) => {
+        storeTouchPosition(e);
+    }
+
+    const storeTouchPosition = (e) => {
+        let touches = e.changedTouches;
+
+        mouse.x = touches[0].pageX * dpi;
+        mouse.y = touches[0].pageY * dpi;
     }
 
     window.onkeyup = (e) => {
