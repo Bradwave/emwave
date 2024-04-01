@@ -37,7 +37,7 @@ let wavePlot = function (id) {
     /**
      * Matrix of cell center coordinates.
      */
-    let cellCenters = [];
+    let cellData = [];
 
     /**
      * Mouse position.
@@ -185,6 +185,8 @@ let wavePlot = function (id) {
         if (e.code === "Enter") {
             // Switches between truly relativistic and not
             isTrulyRelativistic = !isTrulyRelativistic;
+        } else if (e.code == "Space") {
+            console.log(cellData[30][10].intensity)
         }
     }
 
@@ -210,13 +212,14 @@ let wavePlot = function (id) {
         gridSize.y = Math.ceil(height / cellSize);
 
         // Calculates the cell center coordinates
-        cellCenters = [];
+        cellData = [];
         for (let i = 0; i < gridSize.x; i++) {
-            cellCenters[i] = [];
+            cellData[i] = [];
             for (let j = 0; j < gridSize.y; j++) {
-                cellCenters[i][j] = {
+                cellData[i][j] = {
                     x: i * cellSize + .5 * cellSize,
-                    y: j * cellSize + .5 * cellSize
+                    y: j * cellSize + .5 * cellSize,
+                    intensity: Array(avgTime).fill(0)
                 }
             }
         }
@@ -321,7 +324,7 @@ let wavePlot = function (id) {
         for (let i = 0; i < gridSize.x; i++) {
             for (let j = 0; j < gridSize.y; j++) {
                 // Gets the cell center coordinates
-                const cellCenter = cellCenters[i][j];
+                const fieldCell = cellData[i][j];
 
                 let fieldIntensity = 0;
                 let distanceToCharge;
@@ -332,7 +335,7 @@ let wavePlot = function (id) {
                     // If the simulation is truly relativistic, looks event at distance c * t', where t' is the event time
                     for (let k = 0; k < eventsSize; k++) {
                         // Computes the distance to charge position at time t'
-                        distanceToCharge = { x: cellCenter.x - positions[k].x, y: cellCenter.y - positions[k].y };
+                        distanceToCharge = { x: fieldCell.x - positions[k].x, y: fieldCell.y - positions[k].y };
                         distanceToChargeAbs = Math.sqrt(distanceToCharge.x ** 2 + distanceToCharge.y ** 2);
                         // Computes difference between the distance to the charge and c * t'
                         const distanceDelta = Math.abs(distanceToChargeAbs - c * k / 60);
@@ -345,7 +348,7 @@ let wavePlot = function (id) {
                     }
                 } else {
                     // Computes the distance
-                    distanceToCharge = { x: cellCenter.x - charge.x, y: cellCenter.y - charge.y };
+                    distanceToCharge = { x: fieldCell.x - charge.x, y: fieldCell.y - charge.y };
                     distanceToChargeAbs = Math.sqrt(distanceToCharge.x ** 2 + distanceToCharge.y ** 2);
                     // Computes the retarded acceleration, assuming the particle isn't moving much
                     retardedAcceleration = accelerations[Math.round(60 * distanceToChargeAbs / c)];
@@ -360,6 +363,14 @@ let wavePlot = function (id) {
                 fieldIntensity = Math.abs(angleFactor)
                     * Math.sqrt(retardedAcceleration.x ** 2 + retardedAcceleration.y ** 2) / distanceToChargeAbs;
 
+                // Stores the intensity of the current field cell
+                fieldCell.intensity.unshift(fieldIntensity);
+                if (fieldCell.intensity.length > avgTime - 1) fieldCell.intensity.pop();
+
+                // Computes the 
+                const intensityChange = Math.abs(fieldIntensity - fieldCell.intensity[avgTime - 1]) / Math.max(...fieldCell.intensity);
+                // intensityChange = 1 - (intensityChange > 1 ? 1 : intensityChange);
+
                 // Sets the color coefficient for the cell field dot
                 const colorFactor = constrain(fieldIntensity, 0, 1);
 
@@ -370,18 +381,12 @@ let wavePlot = function (id) {
                 ctx.beginPath();
                 // Sets the field cell dot color
                 ctx.fillStyle = 'hsl('
-                    + (0 + 150 * colorFactor) + ','
+                    + (-20 + intensityChange * 250) + ','
                     + (20 + 80 * colorFactor) + '%,'
                     + (30 + 60 * colorFactor) + '%)';
 
-                // RBG version
-                // ctx.fillStyle = 'rgb('
-                //     + (20 + 140 * colorFactor) + ','
-                //     + (180 + 100 * colorFactor) + ','
-                //     + (100 - 100 * colorFactor) + ')';
-
                 // Draws the field cell dot
-                ctx.arc(cellCenter.x, cellCenter.y, radius, 0, 360);
+                ctx.arc(fieldCell.x, fieldCell.y, radius, 0, 360);
                 ctx.fill();
                 ctx.closePath();
             }
