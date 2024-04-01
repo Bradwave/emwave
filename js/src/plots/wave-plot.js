@@ -121,7 +121,7 @@ let wavePlot = function (id) {
         charge.x = Math.round(width / 2);
         charge.y = Math.round(height / 2);
 
-        eventsSize = Math.ceil(Math.max(width, height) / c * 60) + 10;
+        eventsSize = Math.ceil(Math.sqrt(width ** 2 + height ** 2) / c * 60) + 10;
 
         positions = Array(eventsSize).fill({ x: charge.x, y: charge.y });
         velocities = Array(avgTime).fill({ x: 0, y: 0 });
@@ -185,8 +185,6 @@ let wavePlot = function (id) {
         if (e.code === "Enter") {
             // Switches between truly relativistic and not
             isTrulyRelativistic = !isTrulyRelativistic;
-        } else if (e.code == "Space") {
-            console.log(cellData[30][10].intensity)
         }
     }
 
@@ -381,7 +379,7 @@ let wavePlot = function (id) {
                 ctx.beginPath();
                 // Sets the field cell dot color
                 ctx.fillStyle = 'hsl('
-                    + (-20 + intensityChange * 250) + ','
+                    + (-10 + (1 - intensityChange) * 300) + ','
                     + (20 + 80 * colorFactor) + '%,'
                     + (30 + 60 * colorFactor) + '%)';
 
