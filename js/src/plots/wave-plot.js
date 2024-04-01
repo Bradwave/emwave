@@ -101,7 +101,7 @@ let wavePlot = function (id) {
     /**
      * Speed of light.
      */
-    const c = 300;
+    const c = 600;
 
     /**
      * Ture if it is a truly relativistic simulation, false otherwise.
