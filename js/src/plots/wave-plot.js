@@ -1,9 +1,10 @@
 /**
  * Plot of electromagnetic wave.
  * @param {Number} id Id of the signal plot.
+ * @param {*} options Options for the simulation.
  * @returns Public APIs.
  */
-let wavePlot = function (id) {
+let wavePlot = function (id, options = { speedOfLight: 600, cellSize: 30, fieldMagnitude: 1 }) {
 
     /**
      * Public methods.
@@ -27,7 +28,7 @@ let wavePlot = function (id) {
     /**
      * Size of a field cell.
      */
-    let cellSize = 30;
+    let cellSize = options.cellSize;
 
     /**
      * Horizontal size of the cells grid.
@@ -89,33 +90,45 @@ let wavePlot = function (id) {
     */
 
     /**
-     * True if running, false otherwise.
+     * True if the simulation is running, false otherwise.
      */
-    let running = false;
+    let running = true;
 
     /**
      * True if left mouse button is down, false otherwise.
      */
     let mouseDown = false;
 
+    /*_______________________________________
+    |   Simulation variables
+    */
+
     /**
      * Speed of light.
      */
-    const c = 600;
+    let c = options.speedOfLight;
 
     /**
      * Ture if it is a truly relativistic simulation, false otherwise.
      */
-    let isTrulyRelativistic = true;
+    let trulyRelativistic = true;
+
+    let fieldMagnitude = options.fieldMagnitude;
 
     /**
      * Updates the plot.
-     * @param {*} inputSignal Signal function f(x), 
-     * @param {*} options 
+     * @param {*} options Options for the simulation.
      */
-    publicAPIs.update = function (inputSignal, options) {
-        // Resizes canvas
+    publicAPIs.update = function (options = { speedOfLight: c, cellSize: cellSize, fieldMagnitude: fieldMagnitude }) {
+        // Resizes the canvas
         publicAPIs.resizeCanvas();
+
+        publicAPIs.pauseAnimation();
+
+        // Updates the simulation parameters
+        c = options.speedOfLight;
+        cellSize = parseInt(options.cellSize);
+        fieldMagnitude = parseFloat(options.fieldMagnitude);
 
         // Updates here
         charge.x = Math.round(width / 2);
@@ -123,48 +136,55 @@ let wavePlot = function (id) {
 
         eventsSize = Math.ceil(Math.sqrt(width ** 2 + height ** 2) / c * 60) + 10;
 
-        positions = Array(eventsSize).fill({ x: charge.x, y: charge.y });
-        velocities = Array(avgTime).fill({ x: 0, y: 0 });
-        accelerations = Array(eventsSize).fill({ x: 0, y: 0 });
+        positions = [...Array(eventsSize)].map(() => { return { x: charge.x, y: charge.y }; });
+        velocities = [...Array(avgTime)].map(() => { return { x: 0, y: 0 }; });
+        accelerations = [...Array(eventsSize)].map(() => { return { x: 0, y: 0 }; });
 
-        // Draws the plot
-        publicAPIs.toggleAnimation();
-        publicAPIs.drawPlot();
+        publicAPIs.playAnimation();
     }
 
+    /*_______________________________________
+    |   Canvas
+    */
+
+    const plot = new plotStructure(id, { alpha: false });
+    const ctx = plot.getCtx();
+
+    // Canvas listeners
+
     // On mouse down
-    window.onmousedown = (e) => {
+    plot.getCanvas().onmousedown = (e) => {
         if (e.button == 0) {
             mouseDown = true;
         }
     }
 
     // On mouse up
-    window.onmouseup = (e) => {
+    plot.getCanvas().onmouseup = (e) => {
         if (e.button == 0) {
             mouseDown = false;
         }
     }
 
     // On mouse move
-    window.onmousemove = (e) => {
+    plot.getCanvas().onmousemove = (e) => {
         mouse.x = e.pageX * dpi;
         mouse.y = e.pageY * dpi;
     }
 
     // On touch start
-    window.ontouchstart = (e) => {
+    plot.getCanvas().ontouchstart = (e) => {
         mouseDown = true;
         storeTouchPosition(e);
     }
 
     // On touch end
-    window.ontouchend = () => {
+    plot.getCanvas().ontouchend = () => {
         mouseDown = false;
     }
 
     // On touch move
-    window.ontouchmove = (e) => {
+    plot.getCanvas().ontouchmove = (e) => {
         storeTouchPosition(e);
     }
 
@@ -181,19 +201,15 @@ let wavePlot = function (id) {
     }
 
     // On key up
-    window.onkeyup = (e) => {
+    plot.getCanvas().onkeyup = (e) => {
         if (e.code === "Enter") {
             // Switches between truly relativistic and not
-            isTrulyRelativistic = !isTrulyRelativistic;
+            trulyRelativistic = !trulyRelativistic;
+        } else if (e.code === "KeyA") {
+            console.log(accelerations);
+            console.log(velocities[3]);
         }
     }
-
-    /*_______________________________________
-    |   Canvas
-    */
-
-    const plot = new plotStructure(id, { alpha: false });
-    const ctx = plot.getCtx();
 
     /**
      * Resizes the canvas to fill the HTML canvas element.
@@ -208,6 +224,9 @@ let wavePlot = function (id) {
         // Calculates the numbers of cells on the x and y axes
         gridSize.x = Math.ceil(width / cellSize);
         gridSize.y = Math.ceil(height / cellSize);
+
+        charge.x = Math.round(width / 2);
+        charge.y = Math.round(height / 2);
 
         // Calculates the cell center coordinates
         cellData = [];
@@ -224,14 +243,30 @@ let wavePlot = function (id) {
     }
 
     /**
-     * Toggles the animation on and off.
+     * Toggles the simulation on and off.
      */
     publicAPIs.toggleAnimation = () => {
         running = !running;
         if (running) {
             // Starts the animation
-            requestAnimationFrame(animate);
+            animate();
         }
+    }
+
+    /**
+     * Pauses the simulation.
+     */
+    publicAPIs.pauseAnimation = () => {
+        running = false;
+    }
+
+    /**
+     * Starts the simulation.
+     */
+    publicAPIs.playAnimation = () => {
+        running = true;
+        // Starts the animation
+        animate();
     }
 
     /**
@@ -251,6 +286,19 @@ let wavePlot = function (id) {
 
         // Keeps executing this function
         requestAnimationFrame(animate);
+    }
+
+    /**
+     * If the simulation isn't running, it renders the next frame.
+     */
+    publicAPIs.nextFrame = () => {
+        if (!running) {
+            // Updates the physics simulation
+            updatePhysics();
+
+            // Draws what has to be drawn
+            publicAPIs.drawPlot();
+        }
     }
 
     /**
@@ -329,7 +377,7 @@ let wavePlot = function (id) {
                 let distanceToChargeAbs;
                 let retardedAcceleration;
 
-                if (isTrulyRelativistic) {
+                if (trulyRelativistic) {
                     // If the simulation is truly relativistic, looks event at distance c * t', where t' is the event time
                     for (let k = 0; k < eventsSize; k++) {
                         // Computes the distance to charge position at time t'
@@ -358,7 +406,7 @@ let wavePlot = function (id) {
                 const angleFactor = Math.sin(distanceAngle - accelerationAngle);
 
                 // Computes the field intensity, approximated by sin(angle) * acceleration / distance
-                fieldIntensity = Math.abs(angleFactor)
+                fieldIntensity = fieldMagnitude * Math.abs(angleFactor)
                     * Math.sqrt(retardedAcceleration.x ** 2 + retardedAcceleration.y ** 2) / distanceToChargeAbs;
 
                 // Stores the intensity of the current field cell
@@ -425,6 +473,22 @@ let wavePlot = function (id) {
         ctx.fill();
         ctx.closePath();
     }
+
+    /*_______________________________________
+    |   Getters and setters
+    */
+
+    /**
+     * Get the simulations status.
+     * @returns Ture if if the simulation is running, false otherwise.
+     */
+    publicAPIs.isRunning = () => {
+        return running;
+    }
+
+    // Runs the animation
+    publicAPIs.update();
+    animate();
 
     // Returns public methods
     return publicAPIs;

@@ -27,6 +27,22 @@ const plotsManager = new function () {
      */
     const loaders = [...document.getElementsByName("plot-loader")];
 
+    const toggleControlsPanelButton = document.getElementById("toggle-controls-panel");
+
+    const controlsPanel = document.getElementById("controls-panel");
+
+    const playPauseButton = document.getElementById("play-pause");
+
+    const nextFrameButton = document.getElementById("next-frame");
+
+    let controlsPanelVisible = true;
+
+    let speedOfLight = 600;
+
+    let cellSize = 30;
+
+    let fieldMagnitude = 1;
+
     /**
      * Plots.
      */
@@ -37,22 +53,35 @@ const plotsManager = new function () {
         // Field plot
         plots.set(
             'wave',
-            new wavePlot("wave")
+            new wavePlot("wave", {
+                speedOfLight: speedOfLight,
+                cellSize: cellSize,
+                fieldMagnitude: fieldMagnitude
+            })
         );
-        plots.get('wave').update();
     }
 
     /**
      * Updates the plots.
      */
     publicAPIs.update = function () {
-        // Updates here
+        updateInputBoxes();
+
+        plots.get('wave').update({
+            speedOfLight: speedOfLight,
+            cellSize: cellSize,
+            fieldMagnitude: fieldMagnitude
+        });
+
+        console.log("test", speedOfLight)
     }
 
     // On window resize
     window.onresize = () => {
         plots.forEach(plot => {
-            // Clear the canvas
+            // Toggles animation off
+            plot.pauseAnimation();
+            // Clears the canvas
             plot.clearPlot();
         });
 
@@ -61,18 +90,16 @@ const plotsManager = new function () {
             setLoadingStyle(false);
 
             plots.forEach(plot => {
-                // Resize the after waiting (for better performances)
-                plot.resizeCanvas();
-                // Draws the plot
-                plot.drawPlot();
+                // Resizes the after waiting (for better performances)
+                plot.update();
             });
         }, waitTime);
     }
 
     // Sets the loading mode
-    function setLoadingStyle(isLoading, opacity = 0) {
+    function setLoadingStyle(isLoading) {
         if (isLoading) {
-            canvases.forEach((canvas, i) => {
+            canvases.forEach((canvas) => {
                 // Hides the canvases
                 canvas.style.opacity = 0;
                 canvas.style.visibility = "hidden";
@@ -85,7 +112,7 @@ const plotsManager = new function () {
                 loader.style.animationPlayState = "running";
             });
         } else {
-            canvases.forEach((canvas, i) => {
+            canvases.forEach((canvas) => {
                 // Displays the canvases
                 canvas.style.opacity = 1;
                 canvas.style.visibility = "visible";
@@ -103,22 +130,12 @@ const plotsManager = new function () {
     /*_______________________________________
     |   Inputs for the plots
     */
-    
-    // On key down
-    document.addEventListener('keydown', (e) => {
-        switch (e.code) {
-            case "KeyP":
-                // Turns play button into pause and viceversa
-                // playPause.innerHTML = isPlaying ? "play_arrow" : "pause";
-                plots.get('wave').toggleAnimation();
-        }
-    });
 
     /**
      * Ids of input boxes for the plots.
      */
     let inputIds = [
-        
+        'speed-of-light', 'cell-size', 'field-magnitude'
     ];
 
     /**
@@ -134,21 +151,88 @@ const plotsManager = new function () {
     // Sets listeners for input boxes
     plotInputs.forEach((input) => {
         input.onkeyup = (e) => {
-            if (e.code === "Enter" && !autoRefresh && !e.ctrlKey) {
-                // Update here
+            if (e.code === "Enter" && !e.ctrlKey) {
+                changePlots();
             }
         }
 
         input.onchange = () => {
-            if (autoRefresh) ; // Update here
+            changePlots();
         }
     });
+
+    // Updates the parameters when ctrl+Enter is pressed
+    document.onkeyup = (e) => {
+        if (e.ctrlKey && e.code === "Enter") {
+            changePlots();
+        }
+    }
 
     /**
      * Updates the input boxes and the respective variables.
      */
     function updateInputBoxes() {
-        
+        speedOfLight = constrain(getInputNumber(plotInputs, 'speed-of-light'), 50, Infinity);
+        cellSize = constrain(getInputNumber(plotInputs, 'cell-size'), 5, 1000);
+        fieldMagnitude = constrain(getInputNumber(plotInputs, 'field-magnitude'), 0, 100);
+    }
+
+    /**
+     * Update plot when input boxes change.
+     */
+    function changePlots() {
+        setLoadingStyle(true, 0.15);
+        setTimeout(function () {
+            publicAPIs.update();
+            setLoadingStyle(false);
+        }, 100);
+    }
+
+    /*_______________________________________
+    |   Buttons and key listeners
+    */
+
+    // On key down
+    document.addEventListener('keydown', (e) => {
+        switch (e.code) {
+            case "KeyP":
+                // Turns play button into pause and viceversa
+                plots.get('wave').toggleAnimation();
+                playPauseButton.innerHTML = plots.get('wave').isRunning() ? "pause" : "play_arrow";
+                break;
+            case "KeyN":
+                plots.get('wave').nextFrame();
+                break;
+        }
+    });
+
+    // Displays and hide the controls panel
+    toggleControlsPanelButton.onclick = () => {
+        if (controlsPanelVisible) {
+            controlsPanelVisible = false;
+            // Translates the controls panel
+            controlsPanel.style.transform =
+                "translate(" + (-controlsPanel.offsetWidth + toggleControlsPanelButton.offsetWidth) + "px, 0px)";
+            // Rotates the collapse symbol
+            toggleControlsPanelButton.style.transform = "rotate(180deg)";
+        } else {
+            controlsPanelVisible = true;
+            // Translates the controls panel
+            controlsPanel.style.transform = "translate(0px, 0px)";
+            // Rotates the collapse symbol
+            toggleControlsPanelButton.style.transform = "rotate(0)";
+        }
+    }
+
+    // Plays and pauses the simulation
+    playPauseButton.onclick = () => {
+        plots.get('wave').toggleAnimation();
+        playPauseButton.innerHTML = plots.get('wave').isRunning() ? "pause" : "play_arrow";
+    }
+
+    // Advances the simulation to the next frame
+    nextFrameButton.onclick = () => {
+        plots.get('wave').nextFrame();
     }
 
     /**

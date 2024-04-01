@@ -14,5 +14,4 @@ window.onload = () => {
     dpi = window.devicePixelRatio;
 
     plotsManager.createPlots();
-    plotsManager.update();
 }

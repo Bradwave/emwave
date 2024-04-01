@@ -13,11 +13,11 @@
     <title>Electromagnetic Waves</title>
 
     <link rel="icon" type="image/png" href="imgs/icon.png">
-    <link rel="stylesheet" href="css/crimson-days.css">
+    <link rel="stylesheet" href="css/crimson-nights.css">
 
     <link rel="stylesheet"
-        href="https://fonts.sandbox.google.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,600,1,0" />
-    
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0" />
+
 </head>
 
 <body>
@@ -29,8 +29,45 @@
 
     <div class="page-container" id="page-container" style="visibility: hidden; opacity: 0;">
         <div class="plot-container" id="plot">
-            <canvas name="plot" class="plot main" id="canvas-wave" tabindex="1" style="width: 100%; height: 100%;"></canvas>
-            <div name="plot-loader" id="loader-1" class="plot loader"></div>
+            <canvas name="plot" class="plot main" id="canvas-wave" tabindex="1"
+                style="width: 100%; height: 100%;"></canvas>
+            <div class="loading-container">
+                <div name="plot-loader" id="loader-1" class="plot loader"></div>
+            </div>
+        </div>
+        <div id="controls-panel" class="controls-panel">
+            <nobr>
+                <span class="material-symbols-outlined label">
+                    infrared
+                </span>
+                <input id="speed-of-light" class="input-box" type="text" maxlength="6" value="600">
+            </nobr>
+            <nobr>
+                <span class="material-symbols-outlined label">
+                    <!-- grid_view -->
+                    apps
+                </span>
+                <input id="cell-size" class="input-box" type="text" maxlength="6" value="30">
+            </nobr>
+            <nobr>
+                <span class="material-symbols-outlined label">
+                    arrow_warm_up
+                </span>
+                <input id="field-magnitude" class="input-box" type="text" maxlength="6" value="1">
+            </nobr>
+            <span class="play-controls">
+                <span>
+                    <span id="play-pause" class="material-symbols-outlined button">
+                        pause
+                    </span>
+                    <span id="next-frame" class="material-symbols-outlined button">
+                        skip_next
+                    </span>
+                </span>
+            </span>
+            <span id="toggle-controls-panel" class="material-symbols-outlined button">
+                keyboard_tab_rtl
+            </span>
         </div>
     </div>
 
