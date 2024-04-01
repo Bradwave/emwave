@@ -370,9 +370,9 @@ let wavePlot = function (id) {
                 ctx.beginPath();
                 // Sets the field cell dot color
                 ctx.fillStyle = 'hsl('
-                    + (0 + 100 * colorFactor) + ','
+                    + (0 + 150 * colorFactor) + ','
                     + (20 + 80 * colorFactor) + '%,'
-                    + (50 + 40 * colorFactor) + '%)';
+                    + (30 + 60 * colorFactor) + '%)';
 
                 // RBG version
                 // ctx.fillStyle = 'rgb('
