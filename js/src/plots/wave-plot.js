@@ -34,6 +34,9 @@ let wavePlot = function (id) {
      */
     let gridSize = { x: 0, y: 0 };
 
+    /**
+     * Matrix of cell center coordinates.
+     */
     let cellCenters = [];
 
     /**
@@ -46,6 +49,9 @@ let wavePlot = function (id) {
      */
     let charge = { x: 0, y: 0 };
 
+    /**
+     * Previous positions of the charged particle.
+     */
     let positions = [];
 
     /**
@@ -53,14 +59,29 @@ let wavePlot = function (id) {
      */
     let velocity = { x: 0, y: 0 };
 
+    /**
+     * Previous velocities of the charged particle.
+     */
     let velocities = [];
 
+    /**
+     * Current acceleration of the charged particle.
+     */
     let acceleration = { x: 0, y: 0 };
 
+    /**
+     * Previous accelerations of the charged particle.
+     */
     let accelerations = [];
 
+    /**
+     * Max number of stored accelerations and positions of the charged particle.
+     */
     let eventsSize;
 
+    /**
+     * Number of frames over which acceleration is averaged.
+     */
     let avgTime = 10;
 
     /*_______________________________________
@@ -82,6 +103,9 @@ let wavePlot = function (id) {
      */
     const c = 300;
 
+    /**
+     * Ture if it is a truly relativistic simulation, false otherwise.
+     */
     let isTrulyRelativistic = true;
 
     /**
@@ -128,20 +152,26 @@ let wavePlot = function (id) {
         mouse.y = e.pageY * dpi;
     }
 
+    // On touch start
     window.ontouchstart = (e) => {
         mouseDown = true;
-
         storeTouchPosition(e);
     }
 
+    // On touch end
     window.ontouchend = () => {
         mouseDown = false;
     }
 
+    // On touch move
     window.ontouchmove = (e) => {
         storeTouchPosition(e);
     }
 
+    /**
+     * Stores the touch events.
+     * @param {*} e Event
+     */
     const storeTouchPosition = (e) => {
         e.preventDefault();
         let touches = e.changedTouches;
@@ -150,8 +180,10 @@ let wavePlot = function (id) {
         mouse.y = touches[0].pageY * dpi;
     }
 
+    // On key up
     window.onkeyup = (e) => {
         if (e.code === "Enter") {
+            // Switches between truly relativistic and not
             isTrulyRelativistic = !isTrulyRelativistic;
         }
     }
@@ -164,17 +196,20 @@ let wavePlot = function (id) {
     const ctx = plot.getCtx();
 
     /**
-     * Resize the canvas to fill the HTML canvas element.
+     * Resizes the canvas to fill the HTML canvas element.
      */
     publicAPIs.resizeCanvas = () => {
         plot.resizeCanvas();
 
+        // Gets width and height form the plot structure
         width = plot.getWidth();
         height = plot.getHeight();
 
+        // Calculates the numbers of cells on the x and y axes
         gridSize.x = Math.ceil(width / cellSize);
         gridSize.y = Math.ceil(height / cellSize);
 
+        // Calculates the cell center coordinates
         cellCenters = [];
         for (let i = 0; i < gridSize.x; i++) {
             cellCenters[i] = [];
@@ -207,6 +242,21 @@ let wavePlot = function (id) {
             return;
         }
 
+        // Updates the physics simulation
+        updatePhysics();
+
+        // Draws what has to be drawn
+        publicAPIs.drawPlot();
+
+        // Keeps executing this function
+        requestAnimationFrame(animate);
+    }
+
+    /**
+     * Updates the physics simulation.
+     */
+    function updatePhysics() {
+        // Updates the velocity based on mouse/touch position
         if (mouseDown) {
             velocity.x = mouse.x - charge.x;
             velocity.y = mouse.y - charge.y;
@@ -215,35 +265,42 @@ let wavePlot = function (id) {
             velocity.y = Math.abs(velocity.y) > .5 ? .95 * velocity.y : 0;
         }
 
-        limitVelocity(.99 * c);
+        // Limits the velocity to 99% of the speed of light
+        limitSpeed(.99 * c);
 
+        // Stores current velocity
         velocities.unshift({ x: velocity.x, y: velocity.y });
+        // Limits the size of the stored velocities array
         if (velocities.length > avgTime - 1) velocities.pop();
 
+        // Calculates acceleration
         acceleration.x = (velocities[0].x - velocities[avgTime - 1].x) / (avgTime - 1);
         acceleration.y = (velocities[0].y - velocities[avgTime - 1].y) / (avgTime - 1);
 
+        // Stores current acceleration
         accelerations.unshift({ x: acceleration.x, y: acceleration.y });
+        // Limits the size of the stored accelerations array
         if (accelerations.length > eventsSize) accelerations.pop();
 
+        // Changes particle position
         charge.x += .05 * velocity.x;
         charge.y += .05 * velocity.y;
 
+        // Stores current position
         positions.unshift({ x: charge.x, y: charge.y });
-
-        // Draws the epicycles
-        publicAPIs.drawPlot();
-
-        // Increase Time
-        // time = (time + dt) % (2 * Math.PI);
-
-        // Keeps executing this function
-        requestAnimationFrame(animate);
+        // Limits the size of the stored positions array
+        if (positions.length > eventsSize) positions.pop();
     }
 
-    const limitVelocity = (maxVelocity) => {
+    /**
+     * Limits the current speed.
+     * @param {*} maxVelocity Maximum speed.
+     */
+    const limitSpeed = (maxVelocity) => {
+        // Calculates the velocity vector magnitude
         const velocityMagnitude = velocity.x * velocity.x + velocity.y * velocity.y;
         if (velocityMagnitude > maxVelocity * maxVelocity) {
+            // Normalizes the velocity vector and multiply by maximum value
             velocity.x = velocity.x / Math.sqrt(velocityMagnitude) * maxVelocity;
             velocity.y = velocity.y / Math.sqrt(velocityMagnitude) * maxVelocity;
         }
@@ -255,99 +312,103 @@ let wavePlot = function (id) {
     publicAPIs.drawPlot = () => {
 
         // Clears the canvas
-        ctx.clearRect(0, 0, width, height);
-
         publicAPIs.clearPlot();
 
-        ctx.fillStyle = "rgb(150, 150, 150)";
+        // Sets the color of the electric field
+        // ctx.fillStyle = "rgb(150, 150, 150)";
 
+        // Loops every field cell
         for (let i = 0; i < gridSize.x; i++) {
             for (let j = 0; j < gridSize.y; j++) {
+                // Gets the cell center coordinates
                 const cellCenter = cellCenters[i][j];
 
                 let fieldIntensity = 0;
+                let distanceToCharge;
+                let distanceToChargeAbs;
+                let retardedAcceleration;
 
                 if (isTrulyRelativistic) {
+                    // If the simulation is truly relativistic, looks event at distance c * t', where t' is the event time
                     for (let k = 0; k < eventsSize; k++) {
-                        const distanceToEvent = { x: cellCenter.x - positions[k].x, y: cellCenter.y - positions[k].y };
-                        const distanceToEventAbs = Math.sqrt(distanceToEvent.x ** 2 + distanceToEvent.y ** 2);
-                        const distanceDelta = Math.abs(distanceToEventAbs - c * k / 60);
+                        // Computes the distance to charge position at time t'
+                        distanceToCharge = { x: cellCenter.x - positions[k].x, y: cellCenter.y - positions[k].y };
+                        distanceToChargeAbs = Math.sqrt(distanceToCharge.x ** 2 + distanceToCharge.y ** 2);
+                        // Computes difference between the distance to the charge and c * t'
+                        const distanceDelta = Math.abs(distanceToChargeAbs - c * k / 60);
 
                         if (distanceDelta < cellSize) {
-                            const retardedAcceleration = accelerations[k];
-
-                            const distanceAngle = Math.atan2(distanceToEvent.x, distanceToEvent.y);
-                            const accelerationAngle = Math.atan2(retardedAcceleration.x, retardedAcceleration.y);
-
-                            const angleFactor = Math.sin(distanceAngle - accelerationAngle);
-
-                            fieldIntensity = Math.abs(angleFactor)
-                                * Math.sqrt(retardedAcceleration.x ** 2 + retardedAcceleration.y ** 2) / distanceToEventAbs;
-
+                            // Stores the retarded acceleration if the difference is lower the the cell size
+                            retardedAcceleration = accelerations[k];
                             k = eventsSize;
                         }
                     }
                 } else {
-                    const distanceToCharge = { x: cellCenter.x - charge.x, y: cellCenter.y - charge.y };
-                    const distanceToChargeAbs = Math.sqrt(distanceToCharge.x ** 2 + distanceToCharge.y ** 2);
-                    const retardedAcceleration = accelerations[Math.round(60 * distanceToChargeAbs / c)];
-
-                    const distanceAngle = Math.atan2(distanceToCharge.x, distanceToCharge.y);
-                    const accelerationAngle = Math.atan2(retardedAcceleration.x, retardedAcceleration.y);
-
-                    const angleFactor = Math.sin(distanceAngle - accelerationAngle);
-
-                    fieldIntensity = Math.abs(angleFactor)
-                        * Math.sqrt(retardedAcceleration.x ** 2 + retardedAcceleration.y ** 2) / distanceToChargeAbs;
+                    // Computes the distance
+                    distanceToCharge = { x: cellCenter.x - charge.x, y: cellCenter.y - charge.y };
+                    distanceToChargeAbs = Math.sqrt(distanceToCharge.x ** 2 + distanceToCharge.y ** 2);
+                    // Computes the retarded acceleration, assuming the particle isn't moving much
+                    retardedAcceleration = accelerations[Math.round(60 * distanceToChargeAbs / c)];
                 }
 
-                // let color = 200 * fieldIntensity;
-                // color = color > 200 ? 200 : color;
+                // Computes the sine of the angle between the charged and the retarded acceleration
+                const distanceAngle = Math.atan2(distanceToCharge.x, distanceToCharge.y);
+                const accelerationAngle = Math.atan2(retardedAcceleration.x, retardedAcceleration.y);
+                const angleFactor = Math.sin(distanceAngle - accelerationAngle);
 
+                // Computes the field intensity, approximated by sin(angle) * acceleration / distance
+                fieldIntensity = Math.abs(angleFactor)
+                    * Math.sqrt(retardedAcceleration.x ** 2 + retardedAcceleration.y ** 2) / distanceToChargeAbs;
+
+                // Sets the color coefficient for the cell field dot
+                const colorFactor = constrain(fieldIntensity, 0, 1);
+
+                // Sets the cell field dot radius
                 let radius = 0 + 40 * fieldIntensity;
-                radius = radius > 40 ? 40 : (radius > 3 ? Math.round(radius) : radius);
+                radius = radius > 20 ? cellSize : (radius > 3 ? Math.round(radius) : radius);
 
                 ctx.beginPath();
-                // ctx.fillStyle = "rgb(" + color + "," + color + "," + color + ")";
+                // Sets the field cell dot color
+                ctx.fillStyle = 'hsl('
+                    + (0 + 100 * colorFactor) + ','
+                    + (20 + 80 * colorFactor) + '%,'
+                    + (50 + 40 * colorFactor) + '%)';
+
+                // RBG version
+                // ctx.fillStyle = 'rgb('
+                //     + (20 + 140 * colorFactor) + ','
+                //     + (180 + 100 * colorFactor) + ','
+                //     + (100 - 100 * colorFactor) + ')';
+
+                // Draws the field cell dot
                 ctx.arc(cellCenter.x, cellCenter.y, radius, 0, 360);
                 ctx.fill();
                 ctx.closePath();
             }
         }
 
+        // Draws the velocity vector
         ctx.beginPath();
         ctx.strokeStyle = "rgb(255, 255, 255)";
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 2;
         ctx.moveTo(charge.x, charge.y);
         ctx.lineTo(charge.x + velocity.x, charge.y + velocity.y);
         ctx.stroke();
 
+        // Draws the acceleration vector
         ctx.beginPath();
         ctx.strokeStyle = "rgb(176, 26, 0)";
-        ctx.lineWidth = 5;
+        ctx.lineWidth = 8;
         ctx.moveTo(charge.x, charge.y);
         ctx.lineTo(charge.x + 2 * acceleration.x, charge.y + 2 * acceleration.y);
         ctx.stroke();
 
+        // Draws the charged particle
         ctx.beginPath();
         ctx.fillStyle = "rgb(255, 255, 255)";
         ctx.arc(charge.x, charge.y, 10, 0, 360);
         ctx.fill();
         ctx.closePath();
-
-        // for (let i = 0; i < gridSizeX; i++) {
-        //     for (let j = 0; j < gridSizeY; j++) {
-        //         const cellCenterX = i * cellSize + .5 * cellSize;
-        //         const cellCenterY = j * cellSize + .5 * cellSize;
-
-        //         ctx.fillStyle = "rgb(" + color + "," + color + "," + color + ")";
-        //         ctx.fillRect(
-        //             xPos, yPos,
-        //             Math.round((i + 1) * cellSize) - xPos,
-        //             Math.round((j + 1) * cellSize) - yPos
-        //         );
-        //     }
-        // }
     }
 
     /**
