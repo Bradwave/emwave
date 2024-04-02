@@ -118,6 +118,7 @@ body, html {
 
 body {
     font-family: 'Roboto-Mono', monospace;
+    font-size: 6pt;
     color: var(--secondary);
     scrollbar-width: thin;
     transition: all .3s ease-in-out;
@@ -125,7 +126,6 @@ body {
 
 .controls-panel {
     position: absolute;
-    font-size: 10pt;
     color: var(--primary);
     padding-left: 10pt;
     padding-left: 10pt;
@@ -243,7 +243,6 @@ div.input-container {
     place-items: center;
     margin-top: 10px;
     font-family: 'Roboto-Mono', monospace;
-    font-size: 10pt;
     font-weight: 600;
 }
 
@@ -260,7 +259,6 @@ input.input-box {
     text-align: center;
     font-family: 'Roboto-Mono', monospace;
     font-weight: 600;
-    font-size: 10pt;
     caret-color: #8d8d8d;
     transition: all .3 ease-in-out;
 }
