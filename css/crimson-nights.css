@@ -164,6 +164,16 @@ canvas {
     height: 100%;
 }
 
+canvas.plot.stacked {
+    position: absolute;
+}
+
+#canvas-light {
+    margin-top: 10pt;
+    width: calc(100% - 10pt);
+    height: 30px;
+}
+
 /* -- 2.3 Loaders -- */
 
 .loader, .loader:after {

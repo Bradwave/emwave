@@ -4,7 +4,12 @@
  * @param {*} options Options for the simulation.
  * @returns Public APIs.
  */
-let wavePlot = function (id, options = { speedOfLight: 600, cellSize: 30, fieldMagnitude: 1 }) {
+let wavePlot = function (id, options = {
+    speedOfLight: 600,
+    cellSize: 30,
+    fieldMagnitude: 1,
+    plotContainer: document.getElementById("plot-container")
+}) {
 
     /**
      * Public methods.
@@ -99,6 +104,11 @@ let wavePlot = function (id, options = { speedOfLight: 600, cellSize: 30, fieldM
      */
     let mouseDown = false;
 
+    /**
+     * Parent div.
+     */
+    let plotContainer = options.plotContainer;
+
     /*_______________________________________
     |   Simulation variables
     */
@@ -113,6 +123,9 @@ let wavePlot = function (id, options = { speedOfLight: 600, cellSize: 30, fieldM
      */
     let trulyRelativistic = true;
 
+    /**
+     * Field intensity multiplier.
+     */
     let fieldMagnitude = options.fieldMagnitude;
 
     /**
@@ -120,26 +133,33 @@ let wavePlot = function (id, options = { speedOfLight: 600, cellSize: 30, fieldM
      * @param {*} options Options for the simulation.
      */
     publicAPIs.update = function (options = { speedOfLight: c, cellSize: cellSize, fieldMagnitude: fieldMagnitude }) {
-        // Resizes the canvas
-        publicAPIs.resizeCanvas();
-
-        publicAPIs.pauseAnimation();
-
         // Updates the simulation parameters
         c = options.speedOfLight;
         cellSize = parseInt(options.cellSize);
         fieldMagnitude = parseFloat(options.fieldMagnitude);
 
-        // Updates here
+        // Resizes the canvas
+        publicAPIs.resizeCanvas();
+
+        // Pauses the simulation
+        publicAPIs.pauseAnimation();
+
+        // Updates the charge initial position
         charge.x = Math.round(width / 2);
         charge.y = Math.round(height / 2);
 
+        // Sets the maximum number of stored events
         eventsSize = Math.ceil(Math.sqrt(width ** 2 + height ** 2) / c * 60) + 10;
 
+        // Clear the positions, velocities and accelerations array (I avoided using fill)
+        positions.length = 0;
         positions = [...Array(eventsSize)].map(() => { return { x: charge.x, y: charge.y }; });
+        velocities.length = 0;
         velocities = [...Array(avgTime)].map(() => { return { x: 0, y: 0 }; });
+        acceleration.length = 0;
         accelerations = [...Array(eventsSize)].map(() => { return { x: 0, y: 0 }; });
 
+        // Restarts the simulation
         publicAPIs.playAnimation();
     }
 
@@ -153,38 +173,38 @@ let wavePlot = function (id, options = { speedOfLight: 600, cellSize: 30, fieldM
     // Canvas listeners
 
     // On mouse down
-    plot.getCanvas().onmousedown = (e) => {
+    plotContainer.onmousedown = (e) => {
         if (e.button == 0) {
             mouseDown = true;
         }
     }
 
     // On mouse up
-    plot.getCanvas().onmouseup = (e) => {
+    plotContainer.onmouseup = (e) => {
         if (e.button == 0) {
             mouseDown = false;
         }
     }
 
     // On mouse move
-    plot.getCanvas().onmousemove = (e) => {
+    plotContainer.onmousemove = (e) => {
         mouse.x = e.pageX * dpi;
         mouse.y = e.pageY * dpi;
     }
 
     // On touch start
-    plot.getCanvas().ontouchstart = (e) => {
+    plotContainer.ontouchstart = (e) => {
         mouseDown = true;
         storeTouchPosition(e);
     }
 
     // On touch end
-    plot.getCanvas().ontouchend = () => {
+    plotContainer.ontouchend = () => {
         mouseDown = false;
     }
 
     // On touch move
-    plot.getCanvas().ontouchmove = (e) => {
+    plotContainer.ontouchmove = (e) => {
         storeTouchPosition(e);
     }
 
@@ -201,13 +221,12 @@ let wavePlot = function (id, options = { speedOfLight: 600, cellSize: 30, fieldM
     }
 
     // On key up
-    plot.getCanvas().onkeyup = (e) => {
+    plotContainer.onkeyup = (e) => {
         if (e.code === "Enter") {
             // Switches between truly relativistic and not
             trulyRelativistic = !trulyRelativistic;
         } else if (e.code === "KeyA") {
-            console.log(accelerations);
-            console.log(velocities[3]);
+            console.log(cellSize);
         }
     }
 
@@ -487,7 +506,7 @@ let wavePlot = function (id, options = { speedOfLight: 600, cellSize: 30, fieldM
     }
 
     // Runs the animation
-    publicAPIs.update();
+    publicAPIs.update(options);
     animate();
 
     // Returns public methods

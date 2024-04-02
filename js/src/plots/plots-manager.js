@@ -27,20 +27,44 @@ const plotsManager = new function () {
      */
     const loaders = [...document.getElementsByName("plot-loader")];
 
+    /**
+     * Button to toggle the controls panel.
+     */
     const toggleControlsPanelButton = document.getElementById("toggle-controls-panel");
 
+    /**
+     * Controls panel.
+     */
     const controlsPanel = document.getElementById("controls-panel");
 
+    /**
+     * Button to play and pause the simulation.
+     */
     const playPauseButton = document.getElementById("play-pause");
 
+    /**
+     * Button to play the next frame of the simulation.
+     */
     const nextFrameButton = document.getElementById("next-frame");
 
+    /**
+     * True fi the control panel is visible, false otherwise.
+     */
     let controlsPanelVisible = true;
 
+    /**
+     * Speed of light.
+     */
     let speedOfLight = 600;
 
+    /**
+     * Size of the field cell.
+     */
     let cellSize = 30;
 
+    /**
+     * Filed intensity multiplier.
+     */
     let fieldMagnitude = 1;
 
     /**
@@ -50,13 +74,24 @@ const plotsManager = new function () {
 
     // Creates the plots.
     publicAPIs.createPlots = function () {
-        // Field plot
+        // Creates the electromagnetic wave plot
         plots.set(
             'wave',
             new wavePlot("wave", {
                 speedOfLight: speedOfLight,
                 cellSize: cellSize,
-                fieldMagnitude: fieldMagnitude
+                fieldMagnitude: fieldMagnitude,
+                plotContainer: document.getElementById("plot-container")
+            })
+        );
+
+        // Creates the light plot
+        plots.set(
+            'light',
+            new lightPlot("light", {
+                speedOfLight: speedOfLight,
+                width: controlsPanel.offsetWidth - 20,
+                yOffset: controlsPanel.offsetHeight + 40
             })
         );
     }
@@ -67,33 +102,21 @@ const plotsManager = new function () {
     publicAPIs.update = function () {
         updateInputBoxes();
 
+        // Updates the electromagnetic wave plot
         plots.get('wave').update({
             speedOfLight: speedOfLight,
             cellSize: cellSize,
             fieldMagnitude: fieldMagnitude
         });
 
-        console.log("test", speedOfLight)
+        plots.get('light').update({
+            speedOfLight: speedOfLight
+        });
     }
 
     // On window resize
     window.onresize = () => {
-        plots.forEach(plot => {
-            // Toggles animation off
-            plot.pauseAnimation();
-            // Clears the canvas
-            plot.clearPlot();
-        });
-
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-            setLoadingStyle(false);
-
-            plots.forEach(plot => {
-                // Resizes the after waiting (for better performances)
-                plot.update();
-            });
-        }, waitTime);
+        changePlots();
     }
 
     // Sets the loading mode
@@ -181,11 +204,19 @@ const plotsManager = new function () {
      * Update plot when input boxes change.
      */
     function changePlots() {
-        setLoadingStyle(true, 0.15);
-        setTimeout(function () {
-            publicAPIs.update();
+        plots.forEach(plot => {
+            // Pauses the animation
+            plot.pauseAnimation();
+            // Clears the canvas
+            plot.clearPlot();
+        });
+
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
             setLoadingStyle(false);
-        }, 100);
+
+            publicAPIs.update();
+        }, waitTime);
     }
 
     /*_______________________________________
@@ -197,11 +228,16 @@ const plotsManager = new function () {
         switch (e.code) {
             case "KeyP":
                 // Turns play button into pause and viceversa
-                plots.get('wave').toggleAnimation();
+                plots.forEach(plot => {
+                    plot.toggleAnimation();
+                })
                 playPauseButton.innerHTML = plots.get('wave').isRunning() ? "pause" : "play_arrow";
                 break;
             case "KeyN":
-                plots.get('wave').nextFrame();
+                // Plays the next frame
+                plots.forEach(plot => {
+                    plot.nextFrame();
+                })
                 break;
         }
     });
@@ -215,18 +251,28 @@ const plotsManager = new function () {
                 "translate(" + (-controlsPanel.offsetWidth + toggleControlsPanelButton.offsetWidth) + "px, 0px)";
             // Rotates the collapse symbol
             toggleControlsPanelButton.style.transform = "rotate(180deg)";
+            // Pauses the light animation
+            plots.get('light').pauseAnimation();
+            // Hides the light plot
+            canvases[1].style.opacity = 0;
         } else {
             controlsPanelVisible = true;
             // Translates the controls panel
             controlsPanel.style.transform = "translate(0px, 0px)";
             // Rotates the collapse symbol
             toggleControlsPanelButton.style.transform = "rotate(0)";
+            // Plays the light animation
+            plots.get('light').playAnimation();
+            // Makes the light plot visible
+            canvases[1].style.opacity = 1;
         }
     }
 
     // Plays and pauses the simulation
     playPauseButton.onclick = () => {
-        plots.get('wave').toggleAnimation();
+        plots.forEach(plot => {
+            plot.toggleAnimation();
+        })
         playPauseButton.innerHTML = plots.get('wave').isRunning() ? "pause" : "play_arrow";
     }
 

@@ -1,9 +1,9 @@
- /**
-  * General plot structure.
-  * @param {Number} id 
-  * @returns Public APIs.
-  */
- let plotStructure = function (id, options = []) {
+/**
+ * General plot structure.
+ * @param {Number} id 
+ * @returns Public APIs.
+ */
+let plotStructure = function (id, options = []) {
 
     /**
      * Public methods.

@@ -28,7 +28,7 @@
     </div>
 
     <div class="page-container" id="page-container" style="visibility: hidden; opacity: 0;">
-        <div class="plot-container" id="plot">
+        <div class="plot-container" id="plot-container">
             <canvas name="plot" class="plot main" id="canvas-wave" tabindex="1"
                 style="width: 100%; height: 100%;"></canvas>
             <div class="loading-container">
@@ -68,6 +68,9 @@
             <span id="toggle-controls-panel" class="material-symbols-outlined button">
                 keyboard_tab_rtl
             </span>
+            <div class="plot-container" style="width: 100%;">
+                <canvas name="plot" class="plot" id="canvas-light" tabindex="2"></canvas>
+            </div>
         </div>
     </div>
 
@@ -75,6 +78,7 @@
     <script src="js/src/utils/utils.js"></script>
     <script src="js/src/plots/plot-structure.js"></script>
     <script src="js/src/plots/wave-plot.js"></script>
+    <script src="js/src/plots/light-plot.js"></script>
     <script src="js/src/plots/plots-manager.js"></script>
 </body>
 
