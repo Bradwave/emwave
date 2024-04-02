@@ -135,9 +135,9 @@ const plotsManager = new function () {
                 loader.style.animationPlayState = "running";
             });
         } else {
-            canvases.forEach((canvas) => {
+            canvases.forEach((canvas, i) => {
                 // Displays the canvases
-                canvas.style.opacity = 1;
+                canvas.style.opacity = i == 1 ? (controlsPanelVisible ? 1 : 0) : 1;
                 canvas.style.visibility = "visible";
             });
 
