@@ -147,6 +147,17 @@ body {
     padding-right: 10pt;
 }
 
+.toggle-controls {
+    display: -ms-inline-grid;
+    display: -moz-inline-grid;
+    display: inline-grid;
+    place-items: center;
+    background-color: #ffffff50;
+    border-radius: 25px;
+    padding-left: 5pt;
+    padding-right: 5pt;
+}
+
 /* -- 2.2 Canvases -- */
 
 canvas {
@@ -279,6 +290,7 @@ input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
 }
 
 input[type=number] {
+    appearance: textfield;
     -moz-appearance: textfield;
 }
 

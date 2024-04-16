@@ -84,16 +84,6 @@ const plotsManager = new function () {
                 plotContainer: document.getElementById("plot-container")
             })
         );
-
-        // Creates the light plot
-        plots.set(
-            'light',
-            new lightPlot("light", {
-                speedOfLight: speedOfLight,
-                width: controlsPanel.offsetWidth - 20,
-                yOffset: controlsPanel.offsetHeight + 40
-            })
-        );
     }
 
     /**
@@ -107,10 +97,6 @@ const plotsManager = new function () {
             speedOfLight: speedOfLight,
             cellSize: cellSize,
             fieldMagnitude: fieldMagnitude
-        });
-
-        plots.get('light').update({
-            speedOfLight: speedOfLight
         });
     }
 
@@ -137,7 +123,7 @@ const plotsManager = new function () {
         } else {
             canvases.forEach((canvas, i) => {
                 // Displays the canvases
-                canvas.style.opacity = i == 1 ? (controlsPanelVisible ? 1 : 0) : 1;
+                canvas.style.opacity = 1;
                 canvas.style.visibility = "visible";
             });
 
@@ -251,20 +237,12 @@ const plotsManager = new function () {
                 "translate(" + (-controlsPanel.offsetWidth + toggleControlsPanelButton.offsetWidth) + "px, 0px)";
             // Rotates the collapse symbol
             toggleControlsPanelButton.style.transform = "rotate(180deg)";
-            // Pauses the light animation
-            plots.get('light').pauseAnimation();
-            // Hides the light plot
-            canvases[1].style.opacity = 0;
         } else {
             controlsPanelVisible = true;
             // Translates the controls panel
             controlsPanel.style.transform = "translate(0px, 0px)";
             // Rotates the collapse symbol
             toggleControlsPanelButton.style.transform = "rotate(0)";
-            // Plays the light animation
-            plots.get('light').playAnimation();
-            // Makes the light plot visible
-            canvases[1].style.opacity = 1;
         }
     }
 

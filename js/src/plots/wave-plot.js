@@ -66,7 +66,7 @@ let wavePlot = function (id, options = {
     /**
      * Ture if it is a truly relativistic simulation, false otherwise.
      */
-    let trulyRelativistic = true;
+    let relativistic = true;
 
     /**
      * Horizontal size of the cells grid.
@@ -87,11 +87,6 @@ let wavePlot = function (id, options = {
      * Position of the charged particle.
      */
     let charge = { x: 0, y: 0 };
-
-    /**
-     * Previous positions of the charged particle.
-     */
-    let positions = [];
 
     /**
      * Velocity of the charged particle.
@@ -123,12 +118,12 @@ let wavePlot = function (id, options = {
      */
     let avgTime = 10;
 
-    let maxCellTimeTravel;
-
     /**
      * Field intensity multiplier.
      */
     let fieldMagnitude = options.fieldMagnitude;
+
+    const relativisticToggle = document.getElementById("relativistic");
 
     /**
      * Updates the plot.
@@ -156,18 +151,7 @@ let wavePlot = function (id, options = {
         maxCellTimeTravel = 60// Math.ceil(10 * 1.4142 * cellSize * 60 / c);
 
         // Calculates the cell center coordinates
-        cellData = [];
-        for (let i = 0; i < gridSize.x; i++) {
-            cellData[i] = [];
-            for (let j = 0; j < gridSize.y; j++) {
-                cellData[i][j] = {
-                    x: i * cellSize + .5 * cellSize,
-                    y: j * cellSize + .5 * cellSize,
-                    intensity: Array(avgTime).fill(0),
-                    previousEventIndex: null
-                }
-            }
-        }
+        resetCells();
 
         // Clear the velocities and events array (I avoided using fill)
         velocities.length = 0;
@@ -184,6 +168,24 @@ let wavePlot = function (id, options = {
 
         // Restarts the simulation
         publicAPIs.playAnimation();
+    }
+
+    /**
+     * Resets cells positions and data, calculates cell centers
+     */
+    function resetCells() {
+        cellData = [];
+        for (let i = 0; i < gridSize.x; i++) {
+            cellData[i] = [];
+            for (let j = 0; j < gridSize.y; j++) {
+                cellData[i][j] = {
+                    x: i * cellSize + .5 * cellSize,
+                    y: j * cellSize + .5 * cellSize,
+                    intensity: Array(avgTime).fill(0),
+                    previousEventIndex: null
+                }
+            }
+        }
     }
 
     /*_______________________________________
@@ -246,10 +248,26 @@ let wavePlot = function (id, options = {
     // On key up
     plotContainer.onkeyup = (e) => {
         if (e.code === "Enter") {
-            // Switches between truly relativistic and not
-            trulyRelativistic = !trulyRelativistic;
-        } else if (e.code === "KeyA") {
-            console.log(cellSize);
+            // Switches between the relativistic model and the non relativistic one
+            toggleRelativistic();
+        }
+    }
+
+    relativisticToggle.onclick = () => {
+        // Switches between the relativistic model and the non relativistic one
+        toggleRelativistic();
+    }
+
+    function toggleRelativistic() {
+        if (relativistic) {
+            relativistic = false;
+            relativisticToggle.style.color = "#686868";
+            resetCells();
+        } else {
+            relativistic = true;
+            relativisticToggle.style.color = "#f7f7f7";
+            // Reset cell data
+            resetCells();
         }
     }
 
@@ -367,7 +385,7 @@ let wavePlot = function (id, options = {
             angle: Math.atan2(acceleration.x, acceleration.y)
         });
         // Limits the size of the stored accelerations array
-        accelerationEvents.pop();
+        if (accelerationEvents.length > eventsSize) accelerationEvents.pop();
     }
 
     /**
@@ -406,30 +424,31 @@ let wavePlot = function (id, options = {
                 let distanceToChargeAbs;
                 let retardedAcceleration //= { magnitude: 0, angle: 0 };
 
-                if (trulyRelativistic) {
+
+                // Default minimum and maximum indexes
+                let minIndex = 0;
+                let maxIndex = eventsSize;
+
+                // Previous index for the current cell
+                const lastIndex = cellData[i][j].previousEventIndex;
+
+                // Sets the minimum and maximum indexes
+                if (lastIndex != null) {
+                    minIndex = lastIndex - Math.round(eventsSize / 3);
+                    maxIndex = lastIndex + 3;
+                }
+
+                // Constrain the minimum and maximum index
+                minIndex = minIndex < 0 ? 0 : minIndex;
+                maxIndex = maxIndex > eventsSize ? eventsSize : maxIndex;
+
+                if (relativistic) {
                     // If the simulation is truly relativistic, looks event at distance c * t', where t' is the event time
-
-                    // Default minimum and maximum indexes
-                    let minIndex = 0;
-                    let maxIndex = eventsSize;
-
-                    // Previous index for the current cell
-                    const lastIndex = cellData[i][j].previousEventIndex;
-
-                    // Sets the minimum and maximum indexes
-                    if (lastIndex != null) {
-                        minIndex = lastIndex - Math.round(eventsSize / 3);
-                        maxIndex = lastIndex + 3;
-                    }
-
-                    // Constrain the minimum and maximum index
-                    minIndex = minIndex < 0 ? 0 : minIndex;
-                    maxIndex = maxIndex > eventsSize ? eventsSize : maxIndex;
 
                     for (let k = minIndex; k < maxIndex; k++) {
                         // Computes the distance to charge position at time t'
                         distanceToCharge = { x: fieldCell.x - accelerationEvents[k].x, y: fieldCell.y - accelerationEvents[k].y };
-                        distanceToChargeAbs = Math.sqrt(distanceToCharge.x ** 2 + distanceToCharge.y ** 2);
+                        distanceToChargeAbs = Math.sqrt(distanceToCharge.x * distanceToCharge.x + distanceToCharge.y * distanceToCharge.y);
                         // Computes difference between the distance to the charge and c * t'
                         const distanceDelta = Math.abs(distanceToChargeAbs - c * k / 60);
 
@@ -439,13 +458,14 @@ let wavePlot = function (id, options = {
                             cellData[i][j].previousEventIndex = k;
                             break;
                         }
+
                     }
                 } else {
                     // Computes the distance
                     distanceToCharge = { x: fieldCell.x - charge.x, y: fieldCell.y - charge.y };
                     distanceToChargeAbs = Math.sqrt(distanceToCharge.x * distanceToCharge.x + distanceToCharge.y * distanceToCharge.y);
-                    // Computes the retarded acceleration, assuming the particle isn't moving much
-                    retardedAcceleration = accelerationEvents[Math.round(60 * distanceToChargeAbs / c)];
+                    // Computes the acceleration
+                    retardedAcceleration = accelerationEvents[0];
                 }
 
                 // Computes the sine of the angle between the charged and the retarded acceleration

@@ -36,9 +36,16 @@
             </div>
         </div>
         <div id="controls-panel" class="controls-panel">
-            <nobr>
+            <span class="toggle-controls">
+                <span>
+                    <span id="relativistic" class="material-symbols-outlined button" style="color: #f7f7f7;">
+                        infrared
+                    </span>
+                </span>
+            </span>
+            <nobr style="margin-left: 5pt;">
                 <span class="material-symbols-outlined label">
-                    infrared
+                    speed
                 </span>
                 <input id="speed-of-light" class="input-box" type="text" maxlength="6" value="600">
             </nobr>
@@ -47,13 +54,13 @@
                     <!-- grid_view -->
                     apps
                 </span>
-                <input id="cell-size" class="input-box" type="text" maxlength="6" value="30">
+                <input id="cell-size" class="input-box" type="text" maxlength="3" value="30">
             </nobr>
-            <nobr>
+            <nobr style="margin-right: 5pt;">
                 <span class="material-symbols-outlined label">
-                    arrow_warm_up
+                    circles
                 </span>
-                <input id="field-magnitude" class="input-box" type="text" maxlength="6" value="1">
+                <input id="field-magnitude" class="input-box" type="text" maxlength="3" value="1">
             </nobr>
             <span class="play-controls">
                 <span>
@@ -71,9 +78,6 @@
             <span id="toggle-controls-panel" class="material-symbols-outlined button">
                 keyboard_tab_rtl
             </span>
-            <div class="plot-container" style="width: 100%;">
-                <canvas name="plot" class="plot" id="canvas-light" tabindex="2"></canvas>
-            </div>
         </div>
     </div>
 
@@ -81,7 +85,6 @@
     <script src="js/src/utils/utils.js"></script>
     <script src="js/src/plots/plot-structure.js"></script>
     <script src="js/src/plots/wave-plot.js"></script>
-    <script src="js/src/plots/light-plot.js"></script>
     <script src="js/src/plots/plots-manager.js"></script>
 </body>
 
