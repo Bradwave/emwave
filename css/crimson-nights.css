@@ -118,7 +118,7 @@ body, html {
 
 body {
     font-family: 'Roboto-Mono', monospace;
-    font-size: 6pt;
+    font-size: 6px;
     color: var(--secondary);
     scrollbar-width: thin;
     transition: all .3s ease-in-out;
@@ -259,7 +259,7 @@ div.input-container {
 
 input.input-box {
     min-width: 10px;
-    width: 40px;
+    width: 35px;
     margin-left: -2px;
     margin-right: 5px;
     background-color: #00000000;
@@ -317,8 +317,8 @@ input[type=number] {
 }
 
 #toggle-controls-panel {
-    padding-left: 10pt;
-    padding-right: 10pt;
+    padding-left: 5pt;
+    padding-right: 5pt;
 }
 
 #play-pause:hover {
