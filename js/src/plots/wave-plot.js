@@ -123,6 +123,9 @@ let wavePlot = function (id, options = {
      */
     let fieldMagnitude = options.fieldMagnitude;
 
+    /**
+     * Relativistic toggle button.
+     */
     const relativisticToggle = document.getElementById("relativistic");
 
     /**
@@ -189,7 +192,7 @@ let wavePlot = function (id, options = {
     }
 
     /*_______________________________________
-    |   Canvas
+    |   Canvas and listeners
     */
 
     const plot = new plotStructure(id, { alpha: false });
@@ -213,8 +216,8 @@ let wavePlot = function (id, options = {
 
     // On mouse move
     plotContainer.onmousemove = (e) => {
-        mouse.x = e.pageX * dpi;
-        mouse.y = e.pageY * dpi;
+        mouse.x = e.clientX * dpi;
+        mouse.y = e.clientY * dpi;
     }
 
     // On touch start
@@ -328,9 +331,14 @@ let wavePlot = function (id, options = {
         // Updates the physics simulation
         updatePhysics();
 
-        // Draws what has to be drawn
-        publicAPIs.drawPlot();
-
+        try {
+            // Draws what has to be drawn
+            publicAPIs.drawPlot();
+        } catch (error) {
+            enableRefresh();
+            console.log(error);
+            publicAPIs.pauseAnimation();
+        }
         // Keeps executing this function
         requestAnimationFrame(animate);
     }
@@ -343,8 +351,27 @@ let wavePlot = function (id, options = {
             // Updates the physics simulation
             updatePhysics();
 
-            // Draws what has to be drawn
-            publicAPIs.drawPlot();
+            try {
+                // Draws what has to be drawn
+                publicAPIs.drawPlot();
+            } catch (error) {
+                enableRefresh();
+                console.log(error);
+                publicAPIs.pauseAnimation();
+            }
+        }
+    }
+
+    /**
+     * Enables the page refresh and displays the refresh button.
+     */
+    function enableRefresh() {
+        const refreshContainer = document.getElementById("refresh-page-container");
+        refreshContainer.style.visibility = "visible";
+        refreshContainer.style.opacity = 1;
+
+        refreshContainer.onclick = () => {
+            window.location.reload();
         }
     }
 
@@ -402,47 +429,106 @@ let wavePlot = function (id, options = {
         }
     }
 
+    /*_______________________________________
+    |   Rendering
+    */
+
+    /**
+     * Intensity of the field in a given cell.
+     */
+    let fieldIntensity;
+
+    /**
+     * Distance vector of a given cell to the charge (may be a retarded distance).
+     */
+    let distanceToCharge;
+
+    /**
+     * Distance of a given cell to the charge (may be a retarded distance).
+     */
+    let distanceToChargeAbs;
+
+    /**
+     * Acceleration of the charge (may be a retarded acceleration).
+     */
+    let chargeAcceleration;
+
+    /**
+     * Current field cell.
+     */
+    let fieldCell;
+
+    /**
+     * Draws the field.
+     */
+    function drawField() {
+        // Computes the sine of the angle between the charged and the retarded acceleration
+        const distanceAngle = Math.atan2(distanceToCharge.x, distanceToCharge.y);
+        const angleSine = Math.sin(distanceAngle - chargeAcceleration.angle);
+
+        // Computes the field intensity, approximated by sin(angle) * acceleration / distance
+        fieldIntensity = fieldMagnitude * Math.abs(angleSine) * chargeAcceleration.magnitude / distanceToChargeAbs;
+
+        // Stores the intensity of the current field cell
+        fieldCell.intensity.unshift(fieldIntensity);
+        fieldCell.intensity.pop();
+
+        // Computes the intensityChange = 1 - (intensityChange > 1 ? 1 : intensityChange);
+        const intensityChange = Math.abs(fieldIntensity - fieldCell.intensity[avgTime - 1]) / Math.max(...fieldCell.intensity);
+
+        // Sets the color coefficient for the cell field dot
+        const colorFactor = fieldIntensity > 1 ? 1 : fieldIntensity;
+
+        // Sets the cell field dot radius
+        let radius = 0 + 40 * fieldIntensity;
+        radius = radius > 20 ? cellSize : (radius > 3 ? Math.round(radius) : radius);
+
+        ctx.beginPath();
+        // Sets the field cell dot color
+        ctx.fillStyle = 'hsl('
+            + (-20 + (1 - intensityChange) * 300) + ','
+            + (20 + 80 * colorFactor) + '%,'
+            + (30 + 60 * colorFactor) + '%)';
+
+        // Draws the field cell dot
+        ctx.arc(fieldCell.x, fieldCell.y, radius, 0, 360);
+        ctx.fill();
+    }
+
     /**
      * Draws the plot.
      */
     publicAPIs.drawPlot = () => {
-
         // Clears the canvas
         publicAPIs.clearPlot();
 
-        // Sets the color of the electric field
-        // ctx.fillStyle = "rgb(150, 150, 150)";
+        // Checks if the simulation has to be relativistic or not relativistic
+        if (relativistic) {
+            // Loops every field cell
+            for (let i = 0; i < gridSize.x; i++) {
+                for (let j = 0; j < gridSize.y; j++) {
+                    // Gets the cell center coordinates
+                    fieldCell = cellData[i][j];
 
-        // Loops every field cell
-        for (let i = 0; i < gridSize.x; i++) {
-            for (let j = 0; j < gridSize.y; j++) {
-                // Gets the cell center coordinates
-                const fieldCell = cellData[i][j];
+                    fieldIntensity = 0
 
-                let fieldIntensity = 0;
-                let distanceToCharge;
-                let distanceToChargeAbs;
-                let retardedAcceleration //= { magnitude: 0, angle: 0 };
+                    // Default minimum and maximum indexes
+                    let minIndex = 0;
+                    let maxIndex = eventsSize;
 
+                    // Previous index for the current cell
+                    const lastIndex = cellData[i][j].previousEventIndex;
 
-                // Default minimum and maximum indexes
-                let minIndex = 0;
-                let maxIndex = eventsSize;
+                    // Sets the minimum and maximum indexes
+                    if (lastIndex != null) {
+                        minIndex = lastIndex - Math.round(eventsSize / 3);
+                        maxIndex = lastIndex + 3;
+                    }
 
-                // Previous index for the current cell
-                const lastIndex = cellData[i][j].previousEventIndex;
+                    // Constrain the minimum and maximum index
+                    minIndex = minIndex < 0 ? 0 : minIndex;
+                    maxIndex = maxIndex > eventsSize ? eventsSize : maxIndex;
 
-                // Sets the minimum and maximum indexes
-                if (lastIndex != null) {
-                    minIndex = lastIndex - Math.round(eventsSize / 3);
-                    maxIndex = lastIndex + 3;
-                }
-
-                // Constrain the minimum and maximum index
-                minIndex = minIndex < 0 ? 0 : minIndex;
-                maxIndex = maxIndex > eventsSize ? eventsSize : maxIndex;
-
-                if (relativistic) {
                     // If the simulation is truly relativistic, looks event at distance c * t', where t' is the event time
 
                     for (let k = minIndex; k < maxIndex; k++) {
@@ -454,55 +540,35 @@ let wavePlot = function (id, options = {
 
                         if (distanceDelta < cellSize) {
                             // Stores the retarded acceleration if the difference is lower the the cell size
-                            retardedAcceleration = accelerationEvents[k];
+                            chargeAcceleration = accelerationEvents[k];
                             cellData[i][j].previousEventIndex = k;
                             break;
                         }
 
                     }
-                } else {
+
+                    // Draws the field
+                    drawField();
+                }
+            }
+        } else {
+            for (let i = 0; i < gridSize.x; i++) {
+                for (let j = 0; j < gridSize.y; j++) {
+                    // Gets the cell center coordinates
+                    fieldCell = cellData[i][j];
+
                     // Computes the distance
                     distanceToCharge = { x: fieldCell.x - charge.x, y: fieldCell.y - charge.y };
                     distanceToChargeAbs = Math.sqrt(distanceToCharge.x * distanceToCharge.x + distanceToCharge.y * distanceToCharge.y);
                     // Computes the acceleration
-                    retardedAcceleration = accelerationEvents[0];
+                    chargeAcceleration = accelerationEvents[0];
+
+                    // Draws the field
+                    drawField();
                 }
-
-                // Computes the sine of the angle between the charged and the retarded acceleration
-                const distanceAngle = Math.atan2(distanceToCharge.x, distanceToCharge.y);
-                const angleSine = Math.sin(distanceAngle - retardedAcceleration.angle);
-
-                // Computes the field intensity, approximated by sin(angle) * acceleration / distance
-                fieldIntensity = fieldMagnitude * Math.abs(angleSine) * retardedAcceleration.magnitude / distanceToChargeAbs;
-
-                // Stores the intensity of the current field cell
-                fieldCell.intensity.unshift(fieldIntensity);
-                fieldCell.intensity.pop();
-
-                // Computes the intensityChange = 1 - (intensityChange > 1 ? 1 : intensityChange);
-                const intensityChange = Math.abs(fieldIntensity - fieldCell.intensity[avgTime - 1]) / Math.max(...fieldCell.intensity);
-
-                // Sets the color coefficient for the cell field dot
-                const colorFactor = fieldIntensity > 1 ? 1 : fieldIntensity;
-
-                // Sets the cell field dot radius
-                let radius = 0 + 40 * fieldIntensity;
-                radius = radius > 20 ? cellSize : (radius > 3 ? Math.round(radius) : radius);
-
-                ctx.beginPath();
-                // Sets the field cell dot color
-                ctx.fillStyle = 'hsl('
-                    + (-20 + (1 - intensityChange) * 300) + ','
-                    + (20 + 80 * colorFactor) + '%,'
-                    + (30 + 60 * colorFactor) + '%)';
-
-                // Draws the field cell dot
-                ctx.arc(fieldCell.x, fieldCell.y, radius, 0, 360);
-                ctx.fill();
             }
         }
 
-        // Draws the velocity vector
         ctx.beginPath();
         ctx.strokeStyle = "rgb(255, 255, 255)";
         ctx.lineWidth = 2;
@@ -534,7 +600,6 @@ let wavePlot = function (id, options = {
         ctx.beginPath();
         ctx.rect(0, 0, width, height);
         ctx.fill();
-        ctx.closePath();
     }
 
     /*_______________________________________

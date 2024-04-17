@@ -147,7 +147,7 @@ body {
     padding-right: 10pt;
 }
 
-.toggle-controls {
+.bubble-container {
     display: -ms-inline-grid;
     display: -moz-inline-grid;
     display: inline-grid;
@@ -156,6 +156,17 @@ body {
     border-radius: 25px;
     padding-left: 5pt;
     padding-right: 5pt;
+}
+
+#refresh-page-container {
+    padding: 10pt;
+    position: fixed;
+    bottom: 0;
+    color: var(--accent);
+}
+
+#refresh-bubble {
+    background-color: #b01a0050;
 }
 
 /* -- 2.2 Canvases -- */
@@ -327,4 +338,12 @@ input[type=number] {
 
 #next-frame:hover {
     color: var(--primary);
+}
+
+#refresh-page {
+    color: var(--accent);
+}
+
+#refresh-page:hover {
+    color: #e33e20;
 }
