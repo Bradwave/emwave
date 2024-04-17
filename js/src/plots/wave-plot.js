@@ -49,6 +49,10 @@ let wavePlot = function (id, options = {
      */
     let mouseDown = false;
 
+    /*_______________________________________
+    |   HTML elements
+    */
+
     /**
      * Parent div.
      */
@@ -123,10 +127,9 @@ let wavePlot = function (id, options = {
      */
     let fieldMagnitude = options.fieldMagnitude;
 
-    /**
-     * Relativistic toggle button.
-     */
-    const relativisticToggle = document.getElementById("relativistic");
+    /*_______________________________________
+    |   Plot update
+    */
 
     /**
      * Updates the plot.
@@ -248,32 +251,6 @@ let wavePlot = function (id, options = {
         mouse.y = touches[0].pageY * dpi;
     }
 
-    // On key up
-    plotContainer.onkeyup = (e) => {
-        if (e.code === "Enter") {
-            // Switches between the relativistic model and the non relativistic one
-            toggleRelativistic();
-        }
-    }
-
-    relativisticToggle.onclick = () => {
-        // Switches between the relativistic model and the non relativistic one
-        toggleRelativistic();
-    }
-
-    function toggleRelativistic() {
-        if (relativistic) {
-            relativistic = false;
-            relativisticToggle.style.color = "#686868";
-            resetCells();
-        } else {
-            relativistic = true;
-            relativisticToggle.style.color = "#f7f7f7";
-            // Reset cell data
-            resetCells();
-        }
-    }
-
     /**
      * Resizes the canvas to fill the HTML canvas element.
      */
@@ -290,6 +267,21 @@ let wavePlot = function (id, options = {
 
         charge.x = Math.round(width / 2);
         charge.y = Math.round(height / 2);
+    }
+
+    /**
+     * Toggles between the relativistic model and the non relativistic one.
+     */
+    publicAPIs.toggleRelativistic = () => {
+        if (relativistic) {
+            relativistic = false;
+            // Resets the cell data
+            resetCells();
+        } else {
+            relativistic = true;
+            // Resets the cell data
+            resetCells();
+        }
     }
 
     /**
@@ -374,6 +366,10 @@ let wavePlot = function (id, options = {
             window.location.reload();
         }
     }
+
+    /*_______________________________________
+    |   Simulation
+    */
 
     /**
      * Updates the physics simulation.
@@ -607,11 +603,19 @@ let wavePlot = function (id, options = {
     */
 
     /**
-     * Get the simulations status.
-     * @returns Ture if if the simulation is running, false otherwise.
+     * Gets the simulations status.
+     * @returns Ture if the simulation is running, false otherwise.
      */
     publicAPIs.isRunning = () => {
         return running;
+    }
+
+    /**
+     * Gets the simulation model.
+     * @returns True if the model used for the simulation is relativistic, false otherwise.
+     */
+    publicAPIs.isRelativistic = () => {
+        return relativistic;
     }
 
     // Runs the animation

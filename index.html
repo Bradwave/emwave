@@ -27,65 +27,67 @@
         <div class="general loader"></div>
     </div>
 
-    <div class="page-container" id="page-container" style="visibility: hidden; opacity: 0;">
-        <div class="plot-container" id="plot-container">
-            <canvas name="plot" class="plot main" id="canvas-wave" tabindex="1"
-                style="width: 100%; height: 100%;"></canvas>
+    <div id="page-container" style="visibility: hidden; opacity: 0;">
+        <div id="plot-container">
+            <canvas name="plot" id="canvas-wave" tabindex="1"></canvas>
             <div class="loading-container">
                 <div name="plot-loader" id="loader-1" class="plot loader"></div>
             </div>
         </div>
-        <div id="controls-panel" class="controls-panel">
-            <span class="bubble-container">
-                <span>
-                    <span id="relativistic" class="material-symbols-outlined button" style="color: #f7f7f7;">
-                        infrared
+        <div id="controls-panel">
+            <div style="display: table-row;">
+                <div style="display: table-cell;">
+                    <span class="bubble-container">
+                        <span>
+                            <span id="relativistic-toggle" class="material-symbols-outlined button" style="color: #f7f7f7;">
+                                infrared
+                            </span>
+                        </span>
                     </span>
-                </span>
-            </span>
-            <nobr style="margin-left: 2pt;">
-                <span class="material-symbols-outlined label">
-                    speed
-                </span>
-                <input id="speed-of-light" class="input-box" type="text" maxlength="6" value="600">
-            </nobr>
-            <nobr>
-                <span class="material-symbols-outlined label">
-                    <!-- grid_view -->
-                    apps
-                </span>
-                <input id="cell-size" class="input-box" type="text" maxlength="3" value="30">
-            </nobr>
-            <nobr style="margin-right: 2pt;">
-                <span class="material-symbols-outlined label">
-                    circles
-                </span>
-                <input id="field-magnitude" class="input-box" type="text" maxlength="3" value="1">
-            </nobr>
-            <span class="play-controls">
-                <span>
-                    <span id="play-pause" class="material-symbols-outlined button">
-                        pause
+                    <nobr style="margin-left: 2pt;">
+                        <span class="material-symbols-outlined label">
+                            speed
+                        </span>
+                        <input id="speed-of-light" class="input-box" type="text" maxlength="6" value="600">
+                    </nobr>
+                    <nobr>
+                        <span class="material-symbols-outlined label">
+                            <!-- grid_view -->
+                            apps
+                        </span>
+                        <input id="cell-size" class="input-box" type="text" maxlength="3" value="30">
+                    </nobr>
+                    <nobr style="margin-right: 2pt;">
+                        <span class="material-symbols-outlined label">
+                            circles
+                        </span>
+                        <input id="field-magnitude" class="input-box" type="text" maxlength="3" value="1">
+                    </nobr>
+                    <span class="play-controls">
+                        <span>
+                            <span id="play-pause" class="material-symbols-outlined button">
+                                pause
+                            </span>
+                            <span id="next-frame" class="material-symbols-outlined button">
+                                skip_next
+                            </span>
+                        </span>
                     </span>
-                    <span id="next-frame" class="material-symbols-outlined button">
-                        skip_next
+                </div>
+                <div style="display: table-cell;">
+                    <span id="toggle-controls-panel" class="material-symbols-outlined button">
+                        keyboard_tab_rtl
                     </span>
-                </span>
-            </span>
-            <span id="speed">
-
-            </span>
-            <span id="toggle-controls-panel" class="material-symbols-outlined button">
-                keyboard_tab_rtl
-            </span>
+                </div>
+            </div>
         </div>
-        <div id="refresh-page-container" style="opacity: 0; visibility: hidden;">
+        <div id="refresh-page-container">
             <span id="refresh-bubble" class="bubble-container">
                 <span>
                     <span id="refresh-page" class="material-symbols-outlined button">refresh</span>
                 </span>
             </span>
-            <span style="font-size: 10pt; vertical-align: middle; margin-left: 5pt;">
+            <span id="refresh-alert-text">
                 Gotta refresh, sorry.
             </span>
         </div>

@@ -29,10 +29,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
 /**/
 
-/* -- Touch behaviour -- */
+/* -- Touch behaviour (and disable highlight rectangle on mobile) -- */
 
 * {
     touch-action: none;
+    -webkit-tap-highlight-color: #ffffff00;
 }
 
 /* -- Variables -- */
@@ -43,14 +44,6 @@
     --accent: #B01A00;
     --primary: #f7f7f7;
     --secondary: #686868;
-}
-
-/* -- Selection -- */
-
-/* Disable highlight rectangle on mobile */
-
-* {
-    -webkit-tap-highlight-color: #ffffff00;
 }
 
 /* -- Selection -- */
@@ -105,7 +98,7 @@
 
 /* -- 2.1 Body -- */
 
-body, html, canvas, .page-container, .plot-container {
+body, html, canvas, #page-container, #plot-container {
     margin: 0;
     padding: 0;
 }
@@ -124,8 +117,9 @@ body {
     transition: all .3s ease-in-out;
 }
 
-.controls-panel {
+#controls-panel {
     position: absolute;
+    display: table;
     color: var(--primary);
     padding-left: 10pt;
     padding-left: 10pt;
@@ -159,6 +153,8 @@ body {
 }
 
 #refresh-page-container {
+    opacity: 0;
+    visibility: hidden;
     padding: 10pt;
     position: fixed;
     bottom: 0;
@@ -167,6 +163,12 @@ body {
 
 #refresh-bubble {
     background-color: #b01a0050;
+}
+
+#refresh-alert-text {
+    font-size: 10pt;
+    vertical-align: middle;
+    margin-left: 5pt;
 }
 
 /* -- 2.2 Canvases -- */

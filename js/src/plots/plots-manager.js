@@ -48,6 +48,12 @@ const plotsManager = new function () {
     const nextFrameButton = document.getElementById("next-frame");
 
     /**
+     * Relativistic toggle button.
+     */
+    const relativisticToggle = document.getElementById("relativistic-toggle");
+
+
+    /**
      * True fi the control panel is visible, false otherwise.
      */
     let controlsPanelVisible = true;
@@ -225,6 +231,9 @@ const plotsManager = new function () {
                     plot.nextFrame();
                 })
                 break;
+            case "KeyR":
+                toggleRelativistic();
+                break;
         }
     });
 
@@ -244,6 +253,19 @@ const plotsManager = new function () {
             // Rotates the collapse symbol
             toggleControlsPanelButton.style.transform = "rotate(0)";
         }
+    }
+
+    // Listener for bottle to toggle between the relativistic model and the non relativistic one
+    relativisticToggle.onclick = () => {
+        toggleRelativistic();
+    }
+
+    /**
+     * Toggles between the relativistic model for the simulation and the non relativistic one
+     */
+    function toggleRelativistic() {
+        plots.get('wave').toggleRelativistic();
+        relativisticToggle.style.color = plots.get('wave').isRelativistic() ? "#f7f7f7" : "#686868";
     }
 
     // Plays and pauses the simulation
