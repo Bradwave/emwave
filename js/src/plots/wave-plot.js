@@ -477,14 +477,14 @@ let wavePlot = function (id, options = {
 
         // Sets the cell field dot radius
         let radius = 0 + 40 * fieldIntensity;
-        radius = radius > 20 ? cellSize : (radius > 3 ? Math.round(radius) : radius);
+        radius = radius > 20 ? cellSize : (radius > 5 ? Math.round(radius) : radius);
 
         ctx.beginPath();
         // Sets the field cell dot color
         ctx.fillStyle = 'hsl('
-            + (-20 + (1 - intensityChange) * 300) + ','
-            + (20 + 80 * colorFactor) + '%,'
-            + (30 + 60 * colorFactor) + '%)';
+            + Math.round(-20 + (1 - intensityChange) * 300) + ','
+            + Math.round(20 + 80 * colorFactor) + '%,'
+            + Math.round(30 + 60 * colorFactor) + '%)';
 
         // Draws the field cell dot
         ctx.arc(fieldCell.x, fieldCell.y, radius, 0, 360);
@@ -507,27 +507,9 @@ let wavePlot = function (id, options = {
                     fieldCell = cellData[i][j];
 
                     fieldIntensity = 0
-
-                    // Default minimum and maximum indexes
-                    let minIndex = 0;
-                    let maxIndex = eventsSize;
-
-                    // Previous index for the current cell
-                    const lastIndex = cellData[i][j].previousEventIndex;
-
-                    // Sets the minimum and maximum indexes
-                    if (lastIndex != null) {
-                        minIndex = lastIndex - Math.round(eventsSize / 3);
-                        maxIndex = lastIndex + 3;
-                    }
-
-                    // Constrain the minimum and maximum index
-                    minIndex = minIndex < 0 ? 0 : minIndex;
-                    maxIndex = maxIndex > eventsSize ? eventsSize : maxIndex;
-
+                    
                     // If the simulation is truly relativistic, looks event at distance c * t', where t' is the event time
-
-                    for (let k = minIndex; k < maxIndex; k++) {
+                    for (let k = 0; k < eventsSize; k++) {
                         // Computes the distance to charge position at time t'
                         distanceToCharge = { x: fieldCell.x - accelerationEvents[k].x, y: fieldCell.y - accelerationEvents[k].y };
                         distanceToChargeAbs = Math.sqrt(distanceToCharge.x * distanceToCharge.x + distanceToCharge.y * distanceToCharge.y);
